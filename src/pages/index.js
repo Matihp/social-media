@@ -12,10 +12,10 @@ export default function Home() {
   return (
     <>
       <div className='flex max-w-4xl mt-4 mx-auto gap-6'>
-        <div className='w-1/3'>
+        <div className='w-3/12'>
           <NavigationCard/>
         </div>
-        <div className='grow'>
+        <div className='w-9/12'>
           <PostFormCard/>
           <PostCard/>
         </div>
