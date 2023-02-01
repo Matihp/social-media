@@ -1,12 +1,16 @@
 import NavigationCard from './NavigationCard'
 
-const Layout = ({children}) => {
+const Layout = ({children,hide}) => {
   return (
-    <div className='flex max-w-4xl mt-4 mx-auto gap-6'>
-        <div className='w-3/12'>
-          <NavigationCard/>
+    <div className='md:flex max-w-4xl mt-4 mx-auto gap-6 mb-24 md:mb-0'>
+      {
+        !hide && (
+          <div className='md:w-3/12 md:static fixed w-full bottom-0 -mb-5'>
+          <NavigationCard className='z-10'/>
         </div>
-        <div className='w-9/12'>
+        )
+      }
+        <div className={hide ? 'w-full' : 'md:w-9/12 md:mx-0 mx-4 '}>
           {children}
         </div>
       </div>
