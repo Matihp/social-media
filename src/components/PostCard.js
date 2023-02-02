@@ -3,8 +3,9 @@ import Card from './Card'
 import Icon from './Icon'
 import ClickOutHandler from 'react-clickout-handler'
 import Link from 'next/link'
+import ReactTimeAgo from 'react-time-ago'
 
-const PostCard = () => {
+const PostCard = ({content,profiles,created_at}) => {
   const [openMenu,setOpenMenu]=useState(false)
   const menuOpen =(e)=>{
     e.stopPropagation()
@@ -20,16 +21,16 @@ const PostCard = () => {
             <div className='flex gap-3'>
               <div>
                 <Link href={'/profile'}>
-                <span className='cursor-pointer'><Icon/></span>
+                <span className='cursor-pointer'><Icon url={profiles.icon}/></span>
                 </Link>          
               </div>
               <div className='grow'>
                 <p>
                   <Link href={'/profile'}>
-                    <span className='font-semibold hover:underline cursor-pointer mr-1' href="">Matias Contreras</span>
+                    <span className='font-semibold hover:underline cursor-pointer mr-1' href="">{profiles.name}</span>
                   </Link>
                    shared a <a className='text-prBlue font-semibold' href="">post</a> </p>
-                <p className='text-gray-500 text-sm'>5 hours ago</p>
+                <p className='text-gray-500 text-sm'><ReactTimeAgo date={created_at}/> </p>
               </div>
               <div className='relative'>
                 <button onClick={menuOpen}>
@@ -82,11 +83,7 @@ const PostCard = () => {
               </div>             
             </div>  
               <div>
-                <p className='my-3 text-sm'>Un panqueque es “una tortita que se hace con masa de harina, yemas de huevo batidas y un poco de leche” según la RAE. En simples palabras te puedo decir que es el mejor postre de nuestras vidas.
-
-Su historía nos remonta al año 500, cuando algunas personas se vieron ante la necesidad de encontrar platos variados en época de Cuaresma. En estos momentos previos y de preparación para la Pascua no se permitía consumir algunos alimentos como manteca, huevos, queso o leche.
-
-Las ideas comenzaron a surgir y crearon una pasta a base de harina de trigo y agua que se cocinaba en capas finitas sobre piedras calientes. Pero luego cambiaron las reglas y se permitió el consumo de leche, huevos y manteca, en ese momento añadieron estos ingredientes a la pasta original y comenzó lo bueno.</p>
+                <p className='my-3 text-sm'>{content}</p>
               <div className='rounded-md overflow-hidden'>
                 <img src='https://www.paulinacocina.net/wp-content/uploads/2016/04/vlcsnap-2016-04-27-15h50m49s50-1-1-e1461784576326.jpg'></img>
 

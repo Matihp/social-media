@@ -1,14 +1,54 @@
+import { useSession } from "@supabase/auth-helpers-react"
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useEffect, useState } from "react";
 import Card from "./Card"
 import Icon from "./Icon"
 
-const PostFormCard = () => {
+const PostFormCard = ({onPost}) => {
+
+    const supabase = useSupabaseClient()
+    const session= useSession()
+
+    const [profile,setProfile]=useState(null)
+    const [info,setInfo]=useState('')
+
+    useEffect(()=>{
+        supabase.from('profiles')
+        .select()
+        .eq('id', session.user.id)
+        .then(result=>{
+            if(result.data.length){
+                setProfile(result.data[0])
+            }
+        })
+    },[])
+
+    if(!profile){
+        return 'Loading...'
+    }
+
+    const createPost=()=>{
+        supabase.from('posts')
+        .insert({
+            author: session.user.id,
+            content: info,
+        }).then(response=>{
+            if(!response.error){
+                setInfo('')
+                if(onPost){
+                    onPost()
+                }
+            }
+        })
+    }
+
   return (
     <Card>
         <div className="flex gap-2">
             <div>
-                <Icon/>
+                <Icon url={profile.icon}/>
             </div>
-            <textarea className="grow p-3 h-14" placeholder={'Que piensas, Matias?'} />
+            <textarea onChange={e=> setInfo(e.target.value)} className="grow p-3 h-14" placeholder={`Whats on your mind, ${profile.name}?`} value={info}/>
         </div>
         <div className="flex items-center gap-4 mt-2">
             <div>
@@ -37,7 +77,7 @@ const PostFormCard = () => {
                 </button>
             </div>
             <div className="grow text-right">
-                <button className="bg-prBlue text-white rounded-md py-1 px-6">
+                <button onClick={createPost} className="bg-prBlue text-white rounded-md py-1 px-6">
                     Share
                 </button>
             </div>

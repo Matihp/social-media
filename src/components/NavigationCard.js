@@ -1,3 +1,4 @@
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Link from "next/link";
 import { useRouter } from "next/router"
 import Card from "./Card"
@@ -5,8 +6,15 @@ import Card from "./Card"
 const NavigationCard = () => {
   const router=useRouter()
   const {asPath}=router;
+
   const active='flex bg-prBlue rounded-md shadow-md shadow-gray-300 md:gap-3 gap-1 md:-mx-7 md:px-6 px-6 text-white py-3 text-sm md:text-md'
   const nonActive='flex md:gap-3 gap-1 py-2 hover:bg-blue-400 hover:scale-105 hover:bg-opacity-50 hover:shadow-md shadow-gray-300 -mx-5 px-6 md:px-4 rounded-md my-2 transition-all text-sm md:text-md'
+
+  const sb=useSupabaseClient()
+
+  async function logout(){
+    await sb.auth.signOut()
+  }
   return (
     <Card noPadding={true}>
         <div className="flex justify-between gap-4 py-2 px-5 md:block z-40">
@@ -35,12 +43,15 @@ const NavigationCard = () => {
              </svg>
              <span className="hidden md:block">Notifications</span>
             </Link>
-            <Link className={asPath === '/login' ? active : nonActive} href="/login">
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+            <button onClick={logout} className='-my-2 w-full'>
+              <span className={asPath === '/login' ? active : nonActive}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
              </svg>
              <span className="hidden md:block">Logout</span>
-            </Link>
+              </span>
+             
+            </button>
         </div>
             
           </Card>
