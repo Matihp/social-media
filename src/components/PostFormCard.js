@@ -1,6 +1,9 @@
+/* eslint-disable react/jsx-key */
+/* eslint-disable @next/next/no-img-element */
+import { UserContext } from "@/context/UserContext";
 import { useSession } from "@supabase/auth-helpers-react"
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Card from "./Card"
 import Icon from "./Icon"
 
@@ -9,19 +12,9 @@ const PostFormCard = ({onPost}) => {
     const supabase = useSupabaseClient()
     const session= useSession()
 
-    const [profile,setProfile]=useState(null)
+    const [upload,setUpload]=useState([])
     const [info,setInfo]=useState('')
-
-    useEffect(()=>{
-        supabase.from('profiles')
-        .select()
-        .eq('id', session.user.id)
-        .then(result=>{
-            if(result.data.length){
-                setProfile(result.data[0])
-            }
-        })
-    },[])
+    const {profile}=useContext(UserContext)
 
     if(!profile){
         return 'Loading...'
@@ -41,6 +34,23 @@ const PostFormCard = ({onPost}) => {
             }
         })
     }
+    const addImages=(r)=>{
+        const files = r.target.files
+        for (const f of files) {
+            const names=Date.now()+ f.name
+            supabase.storage.from('images')
+            .upload(names,f)
+            .then(res=>{
+                if(res.data){
+                    const url= process.env.NEXT_PUBLIC_SUPABASE_URL + '/storage/v1/object/public/images/'+ res.data.path
+                    setUpload([...upload,url])
+                    console.log(upload)
+                }else{
+                    console.log(res)
+                }
+            })
+        }
+    }
 
   return (
     <Card>
@@ -50,6 +60,17 @@ const PostFormCard = ({onPost}) => {
             </div>
             <textarea onChange={e=> setInfo(e.target.value)} className="grow p-3 h-14" placeholder={`Whats on your mind, ${profile.name}?`} value={info}/>
         </div>
+        {upload.length > 0 && (
+            <div>
+                {upload.map(upl=>(
+                <div className="h-15">
+                        <img src={upl} alt='photo' />
+                    </div>
+                    )
+                )
+                }
+            </div>
+        )}
         <div className="flex items-center gap-4 mt-2">
             <div>
                 <button className="flex gap-1">
@@ -75,6 +96,15 @@ const PostFormCard = ({onPost}) => {
                     </svg>
                     <span className="hidden md:block">Mood</span>
                 </button>
+            </div>
+            <div>
+                <label className="flex gap-1">
+                    <input type='file' className='hidden' onChange={addImages} multiple />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                    <span className="hidden md:block">Photos</span>
+                </label>
             </div>
             <div className="grow text-right">
                 <button onClick={createPost} className="bg-prBlue text-white rounded-md py-1 px-6">

@@ -1,11 +1,13 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import Card from './Card'
 import Icon from './Icon'
 import ClickOutHandler from 'react-clickout-handler'
 import Link from 'next/link'
 import ReactTimeAgo from 'react-time-ago'
+import { UserContext } from '@/context/UserContext'
 
 const PostCard = ({content,profiles,created_at}) => {
+  const {profile}=useContext(UserContext)
   const [openMenu,setOpenMenu]=useState(false)
   const menuOpen =(e)=>{
     e.stopPropagation()
@@ -21,7 +23,7 @@ const PostCard = ({content,profiles,created_at}) => {
             <div className='flex gap-3'>
               <div>
                 <Link href={'/profile'}>
-                <span className='cursor-pointer'><Icon url={profiles.icon}/></span>
+                <span className='cursor-pointer'><Icon url={profiles?.icon}/></span>
                 </Link>          
               </div>
               <div className='grow'>
@@ -77,8 +79,6 @@ const PostCard = ({content,profiles,created_at}) => {
                                </div>
                        )}
                   </div>
-                  
-                  
                 </ClickOutHandler>
               </div>             
             </div>  
@@ -112,7 +112,7 @@ const PostCard = ({content,profiles,created_at}) => {
               </div>
               <div className='flex mt-4 gap-3'>
                 <div>
-                  <Icon/>
+                  <Icon url={profiles.icon}/>
                 </div>
                 <div className='border grow relative rounded-full'>
                   <textarea className=' rounded-full overflow-hidden px-4 p-3 h-12 block w-full' placeholder='Leave a coment'></textarea>
