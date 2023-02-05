@@ -1,17 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 import Card from '@/components/Card'
+import Cover from '@/components/Cover'
 import Friend from '@/components/Friend'
 import Icon from '@/components/Icon'
 import Layout from '@/components/Layout'
 import PostCard from '@/components/PostCard'
-import { useSupabaseClient } from '@supabase/auth-helpers-react'
+import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
+import { ClimbingBoxLoader } from 'react-spinners'
 
 const ProfilePage = () => {
   const [profile,setProfile]=useState(null)
+  const session=useSession()
   const sb=useSupabaseClient()
   const active="flex gap-1 items-center px-3 py-1 border-b-4 text-prBlue font-bold border-prBlue"
   const noActive="flex gap-1 items-center px-3 py-1 border-b-4 border-white"
@@ -19,10 +22,16 @@ const ProfilePage = () => {
   const router=useRouter();
   const user=router.query.id;
 
+
   useEffect(()=>{
     if(!user){
       return
     }
+    console.log(router)
+    fetchUser()    
+  },[user])
+
+  const fetchUser=()=>{
     sb.from('profiles')
     .select()
     .eq('id',user)
@@ -34,24 +43,22 @@ const ProfilePage = () => {
       throw res.error
     }
     })
-    
-  },[user])
-
+  }
   const {asPath}=router;
   const posts=asPath.includes('posts') || asPath === '/profile'
   const about=asPath.includes('about')
   const friends= asPath.includes('friends')
   const photos= asPath.includes('photos')
-  const cont=10
+  const theUSer = user === session?.user?.id
   return (
     <Layout>
         <Card noPadding={true}>
           <div className='relative overflow-hidden rounded-md'>
-            <div className='h-44 overflow-hidden flex justify-center items-center'>
-              <img src={profile?.cover} alt="" />
+            <div className='h-44 overflow-hidden flex justify-center relative items-center'>
+              <Cover url={profile?.cover} alt="cover" edit={theUSer} onChange={fetchUser}/>
             </div>
-            <div className='absolute top-32 left-2'>
-              <Icon size='big'url={profile?.icon}/>
+            <div className='absolute top-32 left-2 z-20'>
+              <Icon size='big'url={profile?.icon} edit={theUSer} onChange={fetchUser}/>
             </div>
             <div className='p-4 pb-0 pt-1 md:pt-3'>
               <div className='ml-40'>
