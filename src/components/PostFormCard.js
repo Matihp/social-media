@@ -4,6 +4,8 @@ import { UserContext } from "@/context/UserContext";
 import { useSession } from "@supabase/auth-helpers-react"
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useContext, useEffect, useState } from "react";
+import { CircleLoader } from "react-spinners";
+import PacmanLoader from "react-spinners/PacmanLoader";
 import Card from "./Card"
 import Icon from "./Icon"
 
@@ -12,6 +14,7 @@ const PostFormCard = ({onPost}) => {
     const supabase = useSupabaseClient()
     const session= useSession()
 
+    const [up,setUp]=useState(false)
     const [upload,setUpload]=useState([])
     const [info,setInfo]=useState('')
     const {profile}=useContext(UserContext)
@@ -25,31 +28,34 @@ const PostFormCard = ({onPost}) => {
         .insert({
             author: session.user.id,
             content: info,
+            photos:upload,
         }).then(response=>{
             if(!response.error){
                 setInfo('')
+                setUpload([])
                 if(onPost){
                     onPost()
                 }
             }
         })
     }
-    const addImages=(r)=>{
+    async function addImages(r){
         const files = r.target.files
-        for (const f of files) {
-            const names=Date.now()+ f.name
-            supabase.storage.from('images')
-            .upload(names,f)
-            .then(res=>{
-                if(res.data){
-                    const url= process.env.NEXT_PUBLIC_SUPABASE_URL + '/storage/v1/object/public/images/'+ res.data.path
-                    setUpload([...upload,url])
-                    console.log(upload)
-                }else{
-                    console.log(res)
-                }
-            })
+        if(files.length>0){
+            setUp(true)
+            for (const f of files) {
+                const names=Date.now()+ f.name
+                const res= await supabase.storage.from('images').upload(names,f)
+                    if(res.data){
+                        const url= process.env.NEXT_PUBLIC_SUPABASE_URL + '/storage/v1/object/public/images/'+ res.data.path
+                        setUpload(allUploads=>[...allUploads,url])
+                    }else{
+                        console.log(res)
+                    }  
+            }    
+         setUp(false)    
         }
+        
     }
 
   return (
@@ -60,11 +66,16 @@ const PostFormCard = ({onPost}) => {
             </div>
             <textarea onChange={e=> setInfo(e.target.value)} className="grow p-3 h-14" placeholder={`Whats on your mind, ${profile.name}?`} value={info}/>
         </div>
+        {up && (
+            <div className="justify-center flex">
+                <PacmanLoader color={'green'} speedMultiplier={2} size={20}/>
+            </div>
+        )}
         {upload.length > 0 && (
-            <div>
+            <div className="flex gap-3">
                 {upload.map(upl=>(
-                <div className="h-15">
-                        <img src={upl} alt='photo' />
+                     <div>
+                        <img src={upl}  alt='photo'className="rounded-md h-20 mt-2" />
                     </div>
                     )
                 )

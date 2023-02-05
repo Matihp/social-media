@@ -6,7 +6,7 @@ const Icon = ({size,url}) => {
   }
   return (
     <div className={`${wid} rounded-full overflow-hidden`}>
-        <img className="" src={url}></img>
+        <img className="w-full" src={url}></img>
     </div>
   )
 }

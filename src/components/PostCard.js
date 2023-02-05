@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-key */
+/* eslint-disable @next/next/no-img-element */
 import React, { useContext, useState } from 'react'
 import Card from './Card'
 import Icon from './Icon'
@@ -6,7 +8,7 @@ import Link from 'next/link'
 import ReactTimeAgo from 'react-time-ago'
 import { UserContext } from '@/context/UserContext'
 
-const PostCard = ({content,profiles,created_at}) => {
+const PostCard = ({content,photos,profiles,created_at}) => {
   const {profile}=useContext(UserContext)
   const [openMenu,setOpenMenu]=useState(false)
   const menuOpen =(e)=>{
@@ -17,19 +19,20 @@ const PostCard = ({content,profiles,created_at}) => {
     e.stopPropagation()
     setOpenMenu(false)
   }
+ 
   const style='flex gap-3 py-1.5 hover:bg-prBlue hover:scale-110 hover:cursor-pointer hover:text-white hover:shadow-md shadow-gray-300 -mx-5 px-5 rounded-md my-2 transition-all'
   return (
     <Card>
             <div className='flex gap-3'>
               <div>
-                <Link href={'/profile'}>
+                <Link href={'/profile/'}>
                 <span className='cursor-pointer'><Icon url={profiles?.icon}/></span>
                 </Link>          
               </div>
               <div className='grow'>
                 <p>
-                  <Link href={'/profile'}>
-                    <span className='font-semibold hover:underline cursor-pointer mr-1' href="">{profiles.name}</span>
+                  <Link href={'/profile/'+ profiles.id}>
+                    <span className='font-semibold hover:underline cursor-pointer mr-1' href="">{profiles?.name}</span>
                   </Link>
                    shared a <a className='text-prBlue font-semibold' href="">post</a> </p>
                 <p className='text-gray-500 text-sm'><ReactTimeAgo date={created_at}/> </p>
@@ -84,10 +87,16 @@ const PostCard = ({content,profiles,created_at}) => {
             </div>  
               <div>
                 <p className='my-3 text-sm'>{content}</p>
-              <div className='rounded-md overflow-hidden'>
-                <img src='https://www.paulinacocina.net/wp-content/uploads/2016/04/vlcsnap-2016-04-27-15h50m49s50-1-1-e1461784576326.jpg'></img>
 
-              </div>
+                  {photos?.length>0 &&(
+                    <div className='flex gap-3'> 
+                      { photos.map(ph=>(
+                          <div>
+                            <img src={ph}className='rounded-md h-40'></img>
+                          </div>                                  
+                        ))}
+                    </div>
+                   )}                                              
               </div>
               <div className='mt-5 flex gap-7 '>
                 <button className='flex gap-2 items-center'>

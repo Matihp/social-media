@@ -1,18 +1,42 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 import Card from '@/components/Card'
 import Friend from '@/components/Friend'
 import Icon from '@/components/Icon'
 import Layout from '@/components/Layout'
 import PostCard from '@/components/PostCard'
-import Image from 'next/image'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 const ProfilePage = () => {
+  const [profile,setProfile]=useState(null)
+  const sb=useSupabaseClient()
   const active="flex gap-1 items-center px-3 py-1 border-b-4 text-prBlue font-bold border-prBlue"
   const noActive="flex gap-1 items-center px-3 py-1 border-b-4 border-white"
+
   const router=useRouter();
+  const user=router.query.id;
+
+  useEffect(()=>{
+    if(!user){
+      return
+    }
+    sb.from('profiles')
+    .select()
+    .eq('id',user)
+    .then(res=>{
+      if(res.data){
+      setProfile(res.data[0])
+    }
+    if(res.error){
+      throw res.error
+    }
+    })
+    
+  },[user])
+
   const {asPath}=router;
   const posts=asPath.includes('posts') || asPath === '/profile'
   const about=asPath.includes('about')
@@ -24,18 +48,18 @@ const ProfilePage = () => {
         <Card noPadding={true}>
           <div className='relative overflow-hidden rounded-md'>
             <div className='h-44 overflow-hidden flex justify-center items-center'>
-              <img src="https://s.iw.ro/gateway/g/ZmlsZVNvdXJjZT1odHRwJTNBJTJGJTJG/c3RvcmFnZXBlcm96LnJjcy1yZHMucm8l/MkZzdG9yYWdlJTJGMjAyMSUyRjAyJTJG/MTElMkYxMjg2OTQxXzEyODY5NDFfc2h1/dHRlcnN0b2NrXzE4OTA5MDkwMzEuanBn/Jnc9ODAwJmhhc2g9NmYwNzUzOWM1NjI3MjNjZDM5ZWEyMjQzYzA2Nzk0MTQ=.thumb.jpg" alt="" />
+              <img src={profile?.cover} alt="" />
             </div>
             <div className='absolute top-32 left-2'>
-              <Icon size='big'/>
+              <Icon size='big'url={profile?.icon}/>
             </div>
             <div className='p-4 pb-0 pt-1 md:pt-3'>
               <div className='ml-40'>
                 <h1 className='text-3xl font-bold'>
-                  Matias Contreras
+                  {profile?.name}
                 </h1>
                 <div className='text-gray-500 leading-4 ml-0.5'>
-                  Rosario,Argentina
+                  {profile?.country}
                 </div>
               </div>
               <div className='flex md:mt-6 mt-3 justify-between sm:justify-start sm:gap-1'>
@@ -67,9 +91,7 @@ const ProfilePage = () => {
             </div>
           </div>
         </Card>
-        {posts && (
-           <PostCard/>
-        )}
+        
         {about && (
           <Card>
             <h1 className='font-bold text-3xl mb-2'>About</h1>

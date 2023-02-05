@@ -1,10 +1,10 @@
 import React from 'react'
 import ProfilePage from '../profile'
 
-const Profile = () => {
-  return (
+const Id = () => {
+  return (  
     <ProfilePage/>
   )
 }
 
-export default Profile
+export default Id
