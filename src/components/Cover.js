@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable jsx-a11y/alt-text */
+import { uploadUserImage } from "@/helpers/user"
 import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react"
 import { useState } from "react"
 import { PacmanLoader } from "react-spinners"
@@ -14,27 +15,12 @@ const Cover = ({url,edit,onChange}) => {
     const file=r.target.files?.[0]
     if(file){
       setUpload(true)
-      const name=Date.now()+file.name
-      const {data,error}=await sb.storage
-      .from('cover')
-      .upload(name,file)
+      await uploadUserImage(sb,session.user.id,file,'cover','cover')
+      if(onChange){
+        onChange()
+      }
       setUpload(false)
-      if(data){
-        const url= process.env.NEXT_PUBLIC_SUPABASE_URL + '/storage/v1/object/public/cover/'+ data.path
-        sb.from('profiles')
-        .update({
-          cover:url,
-        })
-        .eq('id',session.user.id)
-        .then(res=>{
-            if(!res.error && onChange){
-              onChange()
-            }
-        })
-      }
-      if(error){
-        throw error
-      }
+      
     }
   }
   return (
