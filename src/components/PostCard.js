@@ -1,16 +1,24 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable react/jsx-key */
 /* eslint-disable @next/next/no-img-element */
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Card from './Card'
 import Icon from './Icon'
 import ClickOutHandler from 'react-clickout-handler'
 import Link from 'next/link'
 import ReactTimeAgo from 'react-time-ago'
 import { UserContext } from '@/context/UserContext'
+import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
 
-const PostCard = ({content,photos,profiles,created_at}) => {
+const PostCard = ({content,photos,profiles,created_at,id}) => {
+  const style='flex gap-3 py-1.5 hover:bg-prBlue hover:scale-110 hover:cursor-pointer hover:text-white hover:shadow-md shadow-gray-300 -mx-5 px-5 rounded-md my-2 transition-all'
   const {profile}=useContext(UserContext)
   const [openMenu,setOpenMenu]=useState(false)
+  const [likes,setLikes]=useState([])
+  const [comment,setComment]=useState('')  
+  const sb=useSupabaseClient()
+
   const menuOpen =(e)=>{
     e.stopPropagation()
     setOpenMenu(true)
@@ -19,8 +27,44 @@ const PostCard = ({content,photos,profiles,created_at}) => {
     e.stopPropagation()
     setOpenMenu(false)
   }
- 
-  const style='flex gap-3 py-1.5 hover:bg-prBlue hover:scale-110 hover:cursor-pointer hover:text-white hover:shadow-md shadow-gray-300 -mx-5 px-5 rounded-md my-2 transition-all'
+
+  useEffect(()=>{
+    fetchLikes()
+  },[])
+  function fetchLikes(){
+    sb.from('likes').select()
+    .eq('post_id',id)
+    .then((res)=>setLikes(res.data))
+  }
+
+  const likedByMe=!!likes.find(like=>like.user_id === profile.id)
+
+  function likePost(){
+    if(likedByMe){
+      sb.from('likes').delete()
+      .eq('user_id',profile.id)
+      .eq('post_id',id)
+      .then((res)=>{
+        fetchLikes()
+      })
+      
+      return
+    }
+    sb.from('likes').insert({
+      post_id:id,
+      user_id: profiles.id,
+    }).then(res=>fetchLikes())
+  }
+  function commentPost(e){
+    e.preventDefault()
+    sb.from('posts').insert({
+      author:profile.id,
+      content:comment,
+      point:id,
+    }).then(res=>console.log(res))
+  }
+  
+  
   return (
     <Card>
             <div className='flex gap-3'>
@@ -35,7 +79,7 @@ const PostCard = ({content,photos,profiles,created_at}) => {
                     <span className='font-semibold hover:underline cursor-pointer mr-1' href="">{profiles?.name}</span>
                   </Link>
                    shared a <a className='text-prBlue font-semibold' href="">post</a> </p>
-                <p className='text-gray-500 text-sm'><ReactTimeAgo date={created_at}/> </p>
+                <p className='text-gray-500 text-sm'><ReactTimeAgo date={(new Date(created_at)).getTime()}/> </p>
               </div>
               <div className='relative'>
                 <button onClick={menuOpen}>
@@ -91,19 +135,19 @@ const PostCard = ({content,photos,profiles,created_at}) => {
                   {photos?.length>0 &&(
                     <div className='flex gap-3'> 
                       { photos.map(ph=>(
-                          <div>
-                            <img src={ph}className='rounded-md h-40'></img>
+                          <div key={ph}>
+                            <img  src={ph}className='rounded-md h-40'></img>
                           </div>                                  
                         ))}
                     </div>
                    )}                                              
               </div>
               <div className='mt-5 flex gap-7 '>
-                <button className='flex gap-2 items-center'>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <button onClick={likePost} className='flex gap-2 items-center'>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={"w-6 h-6" + (likedByMe ? ' fill-red-600' : '')}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                   </svg>
-                  150
+                  {likes?.length}
                </button>
                <button className='flex gap-2 items-center'>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -124,7 +168,9 @@ const PostCard = ({content,photos,profiles,created_at}) => {
                   <Icon url={profiles.icon}/>
                 </div>
                 <div className='border grow relative rounded-full'>
-                  <textarea className=' rounded-full overflow-hidden px-4 p-3 h-12 block w-full' placeholder='Leave a coment'></textarea>
+                  <form onSubmit={commentPost}>
+                    <input className=' rounded-full overflow-hidden px-4 p-3 h-12 block w-full'onChange={e=>setComment(e.target.value)} value={comment} placeholder='Leave a coment'/>
+                  </form>
                   <button className='text-blue-400 absolute top-3 right-3'>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
