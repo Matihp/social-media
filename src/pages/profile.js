@@ -2,13 +2,11 @@
 /* eslint-disable @next/next/no-img-element */
 import Card from '@/components/Card'
 import Cover from '@/components/Cover'
-import Friend from '@/components/Friend'
 import Icon from '@/components/Icon'
 import Layout from '@/components/Layout'
 import ProfileNav from '@/components/ProfileNav'
 import ProfileRender from '@/components/ProfileRender'
 import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
 
@@ -29,7 +27,6 @@ const ProfilePage = () => {
     if(!user){
       return
     }
-    console.log(router)
     fetchUser()    
   },[user])
 
@@ -111,8 +108,8 @@ const ProfilePage = () => {
                  {userId && edit && (
                     <div>
                     <button onClick={fetchProfile} className='flex items-center cursor-pointer hover:bg-prBlue bg-black rounded-md py-1 px-1 shadow-md shadow-gray-200 gap-1 text-white'>
-                     <svg width="24px" height="24px" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#ffffff"><path d="M3 7.5V5a2 2 0 012-2h11.172a2 2 0 011.414.586l2.828 2.828A2 2 0 0121 7.828V19a2 2 0 01-2 2H5a2 2 0 01-2-2v-2.5M6 21v-4" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                     <path d="M18 21v-7.4a.6.6 0 00-.6-.6H15M16 3v5.4a.6.6 0 01-.6.6h-1.9M8 3v3M1 12h11m0 0L9 9m3 3l-3 3" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                     <svg width="24px" height="24px" strokeWidth="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#ffffff"><path d="M3 7.5V5a2 2 0 012-2h11.172a2 2 0 011.414.586l2.828 2.828A2 2 0 0121 7.828V19a2 2 0 01-2 2H5a2 2 0 01-2-2v-2.5M6 21v-4" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                     <path d="M18 21v-7.4a.6.6 0 00-.6-.6H15M16 3v5.4a.6.6 0 01-.6.6h-1.9M8 3v3M1 12h11m0 0L9 9m3 3l-3 3" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path></svg>
                       Save profile
                     </button>
                   </div>
@@ -127,11 +124,11 @@ const ProfilePage = () => {
                 </div>
                          
               </div>
-               <ProfileNav userId={profile?.id}/>
+               <ProfileNav userId={user}nav={nav}/>
             </div>
           </div>
         </Card>
-       <ProfileRender/>
+       <ProfileRender nav={nav} userID={user}/>
       
     </Layout>
   )
