@@ -22,11 +22,11 @@ const ProfileRender = ({nav,userID}) => {
     }
   },[userID,nav])
   async function load(){
-          const posts=await fetchPosts(userID)
-          const profiles=await fetchProfile(userID)
-          setPosts(posts)
-          setProfile(profiles)
-        }
+    const posts=await fetchPosts(userID)
+    const profiles=await fetchProfile(userID)
+    setPosts(posts)
+    setProfile(profiles)
+  }
   async function fetchPosts(userID){
     const {data}=await sb.from('posts')
     .select('id,author,created_at,content')
@@ -37,13 +37,13 @@ const ProfileRender = ({nav,userID}) => {
     const {data}=await sb.from('profiles')
     .select()
     .eq('id',userID)
-    return data[0]
+    return data?.[0]
   }
 
   return (
     <>
     {nav === 'posts' && (
-      posts.map((posts)=>(
+      posts?.map((posts)=>(
         <PostCard {...posts} key={posts.id} profiles={profile} />
       ))
     )}

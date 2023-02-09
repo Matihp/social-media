@@ -16,7 +16,8 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
   const {profile}=useContext(UserContext)
   const [openMenu,setOpenMenu]=useState(false)
   const [likes,setLikes]=useState([])
-  const [comment,setComment]=useState('')  
+  const [comment,setComment]=useState('')
+  const [text,setText]=useState([])
   const sb=useSupabaseClient()
 
   const menuOpen =(e)=>{
@@ -30,6 +31,8 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
 
   useEffect(()=>{
     fetchLikes()
+    fetchComment()
+
   },[])
   function fetchLikes(){
     sb.from('likes').select()
@@ -37,7 +40,7 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
     .then((res)=>setLikes(res.data))
   }
 
-  const likedByMe=!!likes.find(like=>like.user_id === profile.id)
+  const likedByMe=!!likes.find(like=>like.user_id === profiles.id)
 
   function likePost(){
     if(likedByMe){
@@ -61,9 +64,19 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
       author:profile.id,
       content:comment,
       point:id,
-    }).then(res=>console.log(res))
+    }).then(res => {fetchComment(); setComment('')})
   }
-  
+  function fetchComment(){
+    sb.from('posts').select('*,profiles(*)')
+    .eq('point',id)
+    .then((res) => setText(res.data))
+  }
+  function saveBookmark(){
+    sb.from('bookmark').insert({
+      user_id:profile.id,
+      post_id:id,
+    }).then((res)=>console.log(res))
+  }
   
   return (
     <Card>
@@ -93,12 +106,16 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
                 <ClickOutHandler onClickOut={handleClick}>
                   <div className='relative'>
                   {openMenu && (
-                    <div className='absolute -right-6 bg-white shadow-md shadow-gray-300 w-52 border-gray-100 p-3 rounded-sm'>
-                             <a className={style}>
+                    <div className='absolute overflow-hidden -right-6 bg-white shadow-md shadow-gray-300 w-52 border-gray-100 p-3 rounded-sm'>
+                      <button className='w-full -my-2'onClick={saveBookmark}>
+                        <span>
+                          <a className={style}>
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
                               </svg>
                               Save post</a>
+                        </span>
+                      </button>      
                              <a className={style}>
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0M3.124 7.5A8.969 8.969 0 015.292 3m13.416 0a8.969 8.969 0 012.168 4.5" />
@@ -153,7 +170,7 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z" />
                 </svg>
-                28
+                {text.length}
                </button>
                <button className='flex gap-2 items-center'>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -177,7 +194,26 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
                       </svg>
                   </button>
                 </div>
+                
                </div>
+               
+               <div>
+                  {text.length > 0 && text.map((t) => (
+                    <div className='flex items-center mt-2 gap-2 '>
+                      <Icon url={t.profiles.icon}/>
+                      <div className='px-5 py-2 bg-gray-100 rounded-lg grow'>
+                        <div className='flex items-center '>
+                          <Link className='block font-semibold hover:underline mr-2' href={`profile/${t.profiles.id}`}>{t.profiles.name}</Link>
+                          <ReactTimeAgo className='text-sm mt-0.5 text-gray-600' timeStyle={'twitter'} date={(new Date(t.created_at)).getTime()}/>
+                        </div>
+                        
+                        
+                        <p className='text-sm ml-0.5 mt-1'>{t.content}</p>
+                      </div>
+                      
+                    </div>
+                  ))}
+                </div>
     </Card>
   )
 }

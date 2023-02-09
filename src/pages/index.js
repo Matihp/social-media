@@ -42,6 +42,7 @@ export default function Home() {
   function selectPost(){
     supabase.from('posts')
     .select('id,content,photos,created_at,profiles(id,icon,name)')
+    .is('point',null)
     .order('created_at',{ascending:false})
     .then(result=>{
       setPosts(result.data)
