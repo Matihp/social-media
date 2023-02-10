@@ -11,13 +11,14 @@ import ReactTimeAgo from 'react-time-ago'
 import { UserContext } from '@/context/UserContext'
 import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
 
-const PostCard = ({content,photos,profiles,created_at,id}) => {
+const PostCard = ({content,photos,profiles,created_at,id,onChange}) => {
   const style='flex gap-3 py-1.5 hover:bg-prBlue hover:scale-110 hover:cursor-pointer hover:text-white hover:shadow-md shadow-gray-300 -mx-5 px-5 rounded-md my-2 transition-all'
   const {profile}=useContext(UserContext)
   const [openMenu,setOpenMenu]=useState(false)
   const [likes,setLikes]=useState([])
   const [comment,setComment]=useState('')
   const [text,setText]=useState([])
+  const [saved,setSaved]=useState(false)
   const sb=useSupabaseClient()
 
   const menuOpen =(e)=>{
@@ -31,13 +32,29 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
 
   useEffect(()=>{
     fetchLikes()
-    fetchComment()
+    fetchComment() 
+  },[profiles.id])
 
-  },[])
+  useEffect(()=>{
+    fetchBookmark()
+  },[saved])
+  
   function fetchLikes(){
     sb.from('likes').select()
     .eq('post_id',id)
     .then((res)=>setLikes(res.data))
+  }
+  function fetchBookmark(){
+    sb.from('bookmark').select()
+    .eq('post_id',id)
+    .eq('user_id',profiles.id)
+    .then((res)=>{
+      if(res.data.length>0){
+        setSaved(true)
+      }else{
+        setSaved(false)
+      }
+    })
   }
 
   const likedByMe=!!likes.find(like=>like.user_id === profiles.id)
@@ -45,12 +62,11 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
   function likePost(){
     if(likedByMe){
       sb.from('likes').delete()
-      .eq('user_id',profile.id)
+      .eq('user_id',profiles.id)
       .eq('post_id',id)
       .then((res)=>{
         fetchLikes()
       })
-      
       return
     }
     sb.from('likes').insert({
@@ -71,12 +87,27 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
     .eq('point',id)
     .then((res) => setText(res.data))
   }
-  function saveBookmark(){
-    sb.from('bookmark').insert({
+  function toogleBookmark(){
+    if(saved){
+      sb.from('bookmark').delete()
+      .eq('user_id',profiles.id)
+      .eq('post_id',id)
+      .then((res)=>{
+        setOpenMenu(false)
+        setSaved(false)
+        onChange()
+      })
+    }else{
+      sb.from('bookmark').insert({
       user_id:profile.id,
       post_id:id,
-    }).then((res)=>console.log(res))
+    }).then((res)=>{
+      setSaved(true)
+      setOpenMenu(false)
+    })
+    }
   }
+
   
   return (
     <Card>
@@ -106,14 +137,22 @@ const PostCard = ({content,photos,profiles,created_at,id}) => {
                 <ClickOutHandler onClickOut={handleClick}>
                   <div className='relative'>
                   {openMenu && (
-                    <div className='absolute overflow-hidden -right-6 bg-white shadow-md shadow-gray-300 w-52 border-gray-100 p-3 rounded-sm'>
-                      <button className='w-full -my-2'onClick={saveBookmark}>
+                    <div className='z-10 absolute overflow-hidden -right-6 bg-white shadow-md shadow-gray-300 w-52 border-gray-100 p-3 rounded-sm'>
+                      <button className='w-full -my-2'onClick={toogleBookmark}>
                         <span>
-                          <a className={style}>
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                          <a className={style}>      
+                              {saved ?(
+                                <>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l1.664 1.664M21 21l-1.5-1.5m-5.485-1.242L12 17.25 4.5 21V8.742m.164-4.078a2.15 2.15 0 011.743-1.342 48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185V19.5M4.664 4.664L19.5 19.5" />
                               </svg>
-                              Save post</a>
+                              <p>Remove post</p></>
+                                ) :(<>
+                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                              </svg> 
+                                <p>Saved post</p></>)}
+                              </a>
                         </span>
                       </button>      
                              <a className={style}>

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
 import React, { useEffect, useState } from 'react'
 import Layout from '../components/Layout'
@@ -31,7 +32,7 @@ const BookmarkPage = () => {
       <h1 className='mb-5 text-5xl text-gray-400' >Saved posts</h1>
       {post.length > 0 && post.map(posts=>(
         <div key={posts.id}>
-          <PostCard {...posts}/> 
+          <PostCard {...posts} onChange={savedPost}/> 
         </div>
         
       )) }
