@@ -32,7 +32,7 @@ export default function Home() {
         .eq('id', session.user.id)
         .then(result=>{
             if(result.data.length){
-                setProfile(result.data[0])
+                setProfile(result?.data[0]?.id)
             }
         })
   },[!session?.user?.id])
@@ -49,7 +49,7 @@ export default function Home() {
     })
   }
   return (
-    <Layout>
+    <Layout profile={profile}>
       <UserContext.Provider value={{profile}}>
         <PostFormCard onPost={selectPost}/>
         {posts.map(post =>( 

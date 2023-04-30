@@ -9,7 +9,7 @@ import ClickOutHandler from 'react-clickout-handler'
 import Link from 'next/link'
 import ReactTimeAgo from 'react-time-ago'
 import { UserContext } from '@/context/UserContext'
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
+import { useSupabaseClient } from '@supabase/auth-helpers-react'
 
 const PostCard = ({content,photos,profiles,created_at,id,onChange}) => {
   const style='flex gap-3 py-1.5 hover:bg-prBlue hover:scale-110 hover:cursor-pointer hover:text-white hover:shadow-md shadow-gray-300 -mx-5 px-5 rounded-md my-2 transition-all'
